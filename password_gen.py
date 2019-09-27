@@ -1,6 +1,8 @@
 import string
 import random
 import secrets
+import re
+from pathlib import Path
 
 SPECIAL_CHARS = list('!@#$%^&*(),.')
 
@@ -64,4 +66,58 @@ class password_generator(object):
             print(len(self.password))
             self.password = ''
 
+        print(passwords)
+
+
+    def generate_markov_chain(self, examples=100, text_files=r'text_corpus'):
+        def build_pairs(text):
+            for i in range(len(text) - 1):
+                yield (text[i], text[i+1])
+
+        def build_dict(text):
+            markov = {}
+            for char1, char2 in build_pairs(text):
+                if char1 in markov.keys():
+                    markov[char1].append(char2)
+                else:
+                    markov[char1] = [char2]
+            return markov
+
+        def make_text(text_files, example_num):
+            fpath = Path(text_files)
+            if not fpath.exists():
+                raise ImportError('Point to a location where text files exist')
+            text_files = list(fpath.rglob('*.txt'))
+            random.shuffle(text_files)
+            full_text = []
+            for file_now in text_files:
+                example_num -= 1
+                if example_num <= 0:
+                    break
+                with open(str(file_now)) as fid:
+                    text_now = fid.read()
+                    text_now = text_now.lower()
+                    rgx = re.compile('[%s]' % '\\\' \"-'.join(SPECIAL_CHARS))
+                    squashed_text = rgx.sub('', text_now)
+                    full_text.append(squashed_text)
+            return ''.join(full_text)
+
+        full_text = make_text(text_files, examples)
+        markov_dict = build_dict(full_text)
+        build_chain = [secrets.choice(full_text)]
+        for i in range(self.length_password):
+            build_chain.append(secrets.choice(markov_dict[build_chain[-1]]))
+        full_chain = ''.join(build_chain)
+        # keep repeat letters below 3
+        repeats = re.findall(r'((\w)\2{2,})', full_chain)
+        for rep_now in repeats:
+            idx = full_chain.find(rep_now[0])
+            for j in range(len(rep_now[0]) - 2):
+                full_chain = full_chain[:idx+2+j] + secrets.choice(full_text) + full_chain[idx+3+j:]
+        return full_chain
+
+    def markov_chain(self):
+        passwords = []
+        for k in range(self.num_passwords):
+            passwords.append(self.generate_markov_chain())
         print(passwords)
