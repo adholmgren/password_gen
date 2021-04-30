@@ -12,8 +12,8 @@ CONSONANTS = list(''.join(set(string.ascii_lowercase) - set('aeiou')))
 class password_generator(object):
 
     def __init__(self, num_passwords=10, length_password=14, case_probability=0.05, digits_prob=0.1, special_salt_prob=0.1):
-        if digits_prob + special_salt_prob > 1.:
-            raise ValueError('Probability of digit and special character salting too high.')
+        if digits_prob + special_salt_prob + case_probability > 1.:
+            raise ValueError('Probability of case, digit, and special character salting exceeds 1.')
         self.num_passwords = num_passwords
         self.length_password = length_password
         self.case_probability = case_probability
