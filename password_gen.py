@@ -52,7 +52,6 @@ class password_generator(object):
                 
             self.length_password -= len(rand_chars)
             self.password += rand_chars
-            # print(self.password)
         if self.length_password < 0:
             self.password = self.password[:self.length_password]
 
@@ -63,7 +62,6 @@ class password_generator(object):
             self.length_password = pass_length
             self.build_basic_phonetic()
             passwords.append(self.password)
-            print(len(self.password))
             self.password = ''
 
         print(passwords)
@@ -121,3 +119,7 @@ class password_generator(object):
         for k in range(self.num_passwords):
             passwords.append(self.generate_markov_chain())
         print(passwords)
+
+if __name__ == "__main__":
+    psswd = password_generator()
+    psswd.basic_phonetic()
